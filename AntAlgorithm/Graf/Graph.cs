@@ -1,41 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 namespace Graph
 {
-    static public class Graph<T> where T : IComparable<T>
+    static public class Graph<T> where T : INumber<T>
     {
-        public static T SimpleShortest(T[,] graf)
-        {
-            T[,] grafcopy = Copy(graf);
-            int rows = grafcopy.GetUpperBound(0) + 1;
-            int cols = grafcopy.GetUpperBound(1) + 1;
-            T path = default(T);
-            T maxValue = GetMaxValue();
-
-            for (int i = 0; i < rows; i++)
-            {
-                T temp = maxValue;
-                int node = 0;
-                for (int j = 0; j < cols; j++)
-                {
-                    if (!graf[i, j].Equals(default(T)) && temp.CompareTo(graf[i, j]) > 0)
-                    {
-                        temp = graf[i, j];
-                        node = i;
-                    }
-                }
-                DeleteColomn(grafcopy, node);
-                if (temp.Equals(maxValue))
-                {
-                    temp = default(T);
-                }
-                path = Add(path, temp);
-            }
-            return path;
-        }
 
         public static T[,] Copy(T[,] graf)
         {
@@ -74,16 +46,14 @@ namespace Graph
             T[,] newgraf = new T[rows, colomns - 1];
             for (int i = 0; i < rows; i++)
             {
-                int jO = -1;
-                for (int j = 0; j < colomns - 1; j++)
+                int jO = 0;
+                for (int j = 0; j < colomns; j++)
                 {
-                    jO++;
-                    if (j == index)
+                    if (j != index)
                     {
+                        newgraf[i, jO] = graf[i, j];
                         jO++;
                     }
-
-                    newgraf[i, j] = graf[i, jO];
                 }
             }
             return newgraf;
@@ -94,17 +64,16 @@ namespace Graph
             int rows = graf.GetUpperBound(0) + 1;
             int colomns = graf.GetUpperBound(1) + 1;
             T[,] newgraf = new T[rows - 1, colomns];
-            int iO = -1;
-            for (int i = 0; i < rows - 1; i++)
+            int iO = 0;
+            for (int i = 0; i < rows; i++)
             {
-                iO++;
-                if (i == index)
+                if (i != index)
                 {
+                    for (int j = 0; j < colomns; j++)
+                    {
+                        newgraf[iO, j] = graf[i, j];
+                    }
                     iO++;
-                }
-                for (int j = 0; j < colomns; j++)
-                {
-                    newgraf[i, j] = graf[iO, j];
                 }
             }
             return newgraf;
@@ -147,32 +116,7 @@ namespace Graph
             }
             return adjacencyMatrix;
         }
+ 
 
-        private static T GetMaxValue()
-        {
-            if (typeof(T) == typeof(int))
-            {
-                return (T)(object)int.MaxValue;
-            }
-            else if (typeof(T) == typeof(double))
-            {
-                return (T)(object)double.MaxValue;
-            }
-            else if (typeof(T) == typeof(float))
-            {
-                return (T)(object)float.MaxValue;
-            }
-            else
-            {
-                throw new NotSupportedException("Тип данных не поддерживается");
-            }
-        }
-
-        private static T Add(T a, T b)
-        {
-            dynamic da = a;
-            dynamic db = b;
-            return da + db;
-        }
     }
 }
