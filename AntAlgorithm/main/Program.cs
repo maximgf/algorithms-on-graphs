@@ -1,29 +1,39 @@
 ﻿using System;
 using AntColony;
-public class Program
+using Graph;
+
+class Program
 {
- 
-    public static void Main()
+    static void Main(string[] args)
     {
-        double[,] distances = 
+        if (args.Length == 0)
         {
-            { 0, 10, 15, 20 },
-            { 12, 0, 35, 25 },
-            { 18, 30, 0, 30 },
-            { 22, 28, 32, 0 }
-        };
-
-        var aco = new AntAlgorithm(distances);
-
-        var bestPath = aco.Run();
-        for (int i = 0; i < bestPath.Length; i++)
-        {
-            Console.WriteLine(bestPath[i]);
+            Console.WriteLine("Usage: program.exe <input_file.txt>");
+            return;
         }
 
-        double bestPathLength = aco.PathLenght(bestPath);
-        Console.WriteLine("Best path length: " + bestPathLength);
+        string inputFilePath = args[0];
+
+        if (!System.IO.File.Exists(inputFilePath))
+        {
+            Console.WriteLine($"File not found: {inputFilePath}");
+            return;
+        }
+
+        double[,] graph = Graph<double>.Copy(Graph<double>.ReadGraph(inputFilePath));
+
+        Graph<double>.Print(graph);
+        AntAlgorithm antAlgorithm = new AntAlgorithm(graph);
+
+        antAlgorithm.PathUpdated += (path, length) =>
+        {
+            Console.WriteLine($"Path: {string.Join(" -> ", path)}, Length: {length}");
+        };
+
+        int[] bestPath = antAlgorithm.Run();
+
+        Console.WriteLine("Final Best Path: " + string.Join(" -> ", bestPath) + $" Length: {antAlgorithm.PathLenght(bestPath)}");
+
     }
 }
 
- 

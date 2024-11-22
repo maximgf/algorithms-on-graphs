@@ -10,6 +10,7 @@
         private int nodeCounts;
         private double[,] Pheromones;
         private Random random;
+        public event Action<int[], double> PathUpdated;
 
         public AntAlgorithm(double[,] graf, double alpha = 1, double beta = 1, double Q = 5, double Kevaporation = 0.2)
         {
@@ -55,11 +56,12 @@
                 }
 
                 double pathLength = PathLenght(path);
-
+                PathUpdated?.Invoke(path, pathLength);
                 if (pathLength < bestPathLength)
                 {
                     bestPath = path;
                     bestPathLength = pathLength;
+
                 }
 
                 AddPheromons(path, pathLength);
