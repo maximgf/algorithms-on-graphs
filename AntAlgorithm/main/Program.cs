@@ -25,13 +25,9 @@ class Program
         Graph<double>.Print(graph);
         AntAlgorithm antAlgorithm = new AntAlgorithm(graph);
 
-        antAlgorithm.PathUpdated += (path, length) =>
-        {
-            Console.WriteLine($"Path: {string.Join(" -> ", path)}, Length: {length}");
-        };
-
+        //int[] bestPath = new int[100];
         int[] bestPath = antAlgorithm.Run();
-
+        antAlgorithm.SavePathsToFile("path.txt");
         Console.WriteLine("Final Best Path: " + string.Join(" -> ", bestPath) + $" Length: {antAlgorithm.PathLenght(bestPath)}");
 
     }

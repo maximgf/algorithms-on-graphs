@@ -1,4 +1,7 @@
-﻿namespace AntColony
+﻿using System;
+using System.IO;
+
+namespace AntColony
 {
     public class AntAlgorithm
     {
@@ -10,7 +13,8 @@
         private int nodeCounts;
         private double[,] Pheromones;
         private Random random;
-        public event Action<int[], double> PathUpdated;
+        private double[] BesthPathVector;
+        private double[] CurrentPathVector;
 
         public AntAlgorithm(double[,] graf, double alpha = 1, double beta = 1, double Q = 5, double Kevaporation = 0.2)
         {
@@ -30,12 +34,16 @@
                     Pheromones[row, col] = 0.1;
                 }
             }
+ 
+
         }
 
-        public int[] Run(int countIterations = 100)
+        public int[] Run(int countIterations = 10000)
         {
             int[] bestPath = new int[nodeCounts];
             double bestPathLength = double.MaxValue;
+            BesthPathVector = new double[countIterations];
+            CurrentPathVector = new double[countIterations];
 
             for (int ant = 0; ant < countIterations; ant++)
             {
@@ -56,17 +64,20 @@
                 }
 
                 double pathLength = PathLenght(path);
-                PathUpdated?.Invoke(path, pathLength);
                 if (pathLength < bestPathLength)
                 {
                     bestPath = path;
                     bestPathLength = pathLength;
-
                 }
+
+                BesthPathVector[ant] = bestPathLength;
+                CurrentPathVector[ant] = pathLength;
 
                 AddPheromons(path, pathLength);
                 PheromonsEvaporation();
             }
+ 
+
 
             return bestPath;
         }
@@ -134,6 +145,18 @@
                 }
             }
             return currentNode;
+        }
+
+        public void SavePathsToFile(string filePath)
+        {
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                writer.WriteLine("Iteration\tBest Path Length\tCurrent Path Length");
+                for (int i = 0; i < 10000; i++)
+                {
+                    writer.WriteLine($"{i}\t{BesthPathVector[i]}\t{CurrentPathVector[i]}");
+                }
+            }
         }
     }
 }

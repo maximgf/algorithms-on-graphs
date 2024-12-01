@@ -87,7 +87,18 @@ namespace Graph
 
             foreach (var line in lines)
             {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue; // Skip empty lines
+                }
+
                 string[] parts = line.Split(' ');
+
+                if (parts.Length != 3)
+                {
+                    throw new FormatException($"Invalid input format in line: '{line}'. Expected format: 'from to weight'.");
+                }
+
                 int from = int.Parse(parts[0]);
                 int to = int.Parse(parts[1]);
 
@@ -107,7 +118,18 @@ namespace Graph
 
             foreach (var line in lines)
             {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue; // Skip empty lines
+                }
+
                 string[] parts = line.Split(' ');
+
+                if (parts.Length != 3)
+                {
+                    throw new FormatException($"Invalid input format in line: '{line}'. Expected format: 'from to weight'.");
+                }
+
                 int from = int.Parse(parts[0]);
                 int to = int.Parse(parts[1]);
                 T weight = (T)Convert.ChangeType(parts[2], typeof(T));
@@ -116,7 +138,7 @@ namespace Graph
             }
             return adjacencyMatrix;
         }
- 
+
 
     }
 }
