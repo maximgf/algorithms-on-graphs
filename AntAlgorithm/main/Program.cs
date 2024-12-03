@@ -6,6 +6,7 @@ class Program
 {
     static void Main(string[] args)
     {
+ 
         if (args.Length == 0)
         {
             Console.WriteLine("Usage: program.exe <input_file.txt>");
@@ -20,16 +21,15 @@ class Program
             return;
         }
 
-        double[,] graph = Graph<double>.Copy(Graph<double>.ReadGraph(inputFilePath));
-
-        Graph<double>.Print(graph);
+        double[,] graph = Graph.Graph.Copy(Graph.Graph.ReadGraph(inputFilePath));
+ 
+        Graph.Graph.Print(graph);
         AntAlgorithm antAlgorithm = new AntAlgorithm(graph);
 
-        //int[] bestPath = new int[100];
         int[] bestPath = antAlgorithm.Run();
         antAlgorithm.SavePathsToFile("path.txt");
+        
         Console.WriteLine("Final Best Path: " + string.Join(" -> ", bestPath) + $" Length: {antAlgorithm.PathLenght(bestPath)}");
-
+          
     }
 }
-

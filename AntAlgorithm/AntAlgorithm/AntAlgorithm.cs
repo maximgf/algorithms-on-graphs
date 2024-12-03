@@ -15,6 +15,7 @@ namespace AntColony
         private Random random;
         private double[] BesthPathVector;
         private double[] CurrentPathVector;
+        private double[] BesthPathProbalityVector;
 
         public AntAlgorithm(double[,] graf, double alpha = 1, double beta = 1, double Q = 5, double Kevaporation = 0.2)
         {
@@ -34,7 +35,7 @@ namespace AntColony
                     Pheromones[row, col] = 0.1;
                 }
             }
- 
+
 
         }
 
@@ -44,26 +45,49 @@ namespace AntColony
             double bestPathLength = double.MaxValue;
             BesthPathVector = new double[countIterations];
             CurrentPathVector = new double[countIterations];
+            BesthPathProbalityVector = new double[countIterations];
+
 
             for (int ant = 0; ant < countIterations; ant++)
             {
                 int[] path = new int[nodeCounts];
                 bool[] visited = new bool[nodeCounts];
-                int currentNode = random.Next(nodeCounts);
-
+                int startedNode = random.Next(nodeCounts);
+                int currentNode = startedNode;
                 for (int i = 0; i < nodeCounts; i++)
                 {
                     visited[i] = false;
                 }
-
+ 
                 for (int node = 0; node < nodeCounts; node++)
                 {
-                    visited[currentNode] = true;
+                    
                     path[node] = currentNode;
-                    currentNode = Variable(currentNode, visited);
-                }
+              
+                    currentNode = Variable(currentNode, visited,startedNode);
+ 
+                    visited[currentNode] = true;
+                    if (currentNode == path[node])
+                    {
+                        break;
+                    }
 
+                }
+                /*Console.Write($"{ant}: ");
+                for (int node = 0;node < nodeCounts; node++)
+                {
+                    Console.Write($"{path[node]} ");
+                }
+                */
                 double pathLength = PathLenght(path);
+                //Console.WriteLine(pathLength);
+                if (pathLength == double.PositiveInfinity)
+                {
+
+                    BesthPathVector[ant] = bestPathLength;
+                    CurrentPathVector[ant] = 0;
+                    continue;
+                }
                 if (pathLength < bestPathLength)
                 {
                     bestPath = path;
@@ -72,11 +96,12 @@ namespace AntColony
 
                 BesthPathVector[ant] = bestPathLength;
                 CurrentPathVector[ant] = pathLength;
-
+               
                 AddPheromons(path, pathLength);
                 PheromonsEvaporation();
+                BesthPathProbalityVector[ant] = CalculatePathProbability(bestPath);
             }
- 
+
 
 
             return bestPath;
@@ -113,22 +138,29 @@ namespace AntColony
             }
         }
 
-        private int Variable(int currentNode, bool[] visited)
+        private int Variable(int currentNode, bool[] visited, int startedNode)
         {
+
             double[] probabilities = new double[nodeCounts];
             double normal = 0;
 
             for (int into = 0; into < nodeCounts; into++)
             {
-                if (visited[into])
+                if (visited[into] || graf[currentNode,into] == double.PositiveInfinity || (into == startedNode))
                 {
-                    probabilities[into] = 0;
+                    probabilities[into] = 0.0;
+ 
                     continue;
                 }
                 probabilities[into] = Math.Pow(Pheromones[currentNode, into], alpha) * Math.Pow(1 / graf[currentNode, into], beta);
+ 
                 normal += probabilities[into];
             }
-
+ 
+            if(normal == 0)
+            {
+                return currentNode;
+            }
             for (int i = 0; i < nodeCounts; i++)
             {
                 probabilities[i] /= normal;
@@ -139,11 +171,14 @@ namespace AntColony
             for (int nextNode = 0; nextNode < nodeCounts; nextNode++)
             {
                 cumulativeProbability += probabilities[nextNode];
-                if (rand <= cumulativeProbability)
+ 
+                if (rand < cumulativeProbability)
                 {
+ 
                     return nextNode;
                 }
             }
+           
             return currentNode;
         }
 
@@ -151,12 +186,27 @@ namespace AntColony
         {
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                writer.WriteLine("Iteration\tBest Path Length\tCurrent Path Length");
+                writer.WriteLine("Iteration\tBest Path Length\tCurrent Path Length\tProbability");
                 for (int i = 0; i < 10000; i++)
                 {
-                    writer.WriteLine($"{i}\t{BesthPathVector[i]}\t{CurrentPathVector[i]}");
+                    writer.WriteLine($"{i}\t{BesthPathVector[i]}\t{CurrentPathVector[i]}\t{BesthPathProbalityVector[i]}");
                 }
             }
         }
+
+        private double CalculatePathProbability(int[] path)
+        {
+            double probability = 1.0;
+            for (int node = 0; node < nodeCounts - 1; node++)
+            {
+                int from = path[node];
+                int to = path[node + 1];
+                double pheromone = Pheromones[from, to];
+                double distance = graf[from, to];
+                probability *= Math.Pow(pheromone, alpha) * Math.Pow(1 / distance, beta);
+            }
+            return probability;
+        }
+
     }
 }
