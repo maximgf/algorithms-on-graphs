@@ -1,5 +1,7 @@
 # Оптимизация колонии муравьев для задачи коммивояжера
 ![](https://raw.githubusercontent.com/maximgf/algorithms-on-graphs/refs/heads/main/AntAlgorithm/graphic.png)
+
+![](https://raw.githubusercontent.com/maximgf/algorithms-on-graphs/refs/heads/main/AntAlgorithm/probality.png)
 ## Обзор
 
 Этот проект реализует алгоритм оптимизации колонии муравьев (Ant Colony Optimization, ACO) для решения задачи коммивояжера (Traveling Salesman Problem, TSP). ACO — это вероятностный метод решения вычислительных задач, которые можно свести к поиску хороших путей в графах. Алгоритм вдохновлен поведением муравьев, ищущих путь между своей колонией и источником пищи.
