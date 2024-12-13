@@ -3,7 +3,7 @@
     public class Board
     {
         private Cell[,] cells = new Cell[20, 20];
- 
+
 
         public Board()
         {
@@ -36,7 +36,7 @@
         public void MakeMove(int x, int y, char player)
         {
             cells[y, x].SetValue(player);
- 
+
         }
 
         private void DeleteMove(int x, int y)
@@ -44,18 +44,27 @@
             cells[y, x].SetValue(' ');
         }
 
-        public bool Is_win(char player)
+        public bool Is_win(char player, int lastX = 10, int lastY = 10, int window = 20)
         {
-            for(int i = 0; i < 20;i++)
+            
+            int startX = Math.Max(0, lastX - window);
+            int endX = Math.Min(19, lastX + window);
+            int startY = Math.Max(0, lastY - window);
+            int endY = Math.Min(19, lastY + window);
+
+            for (int i = startY; i <= endY; i++)
             {
-                if(Connectivity(i, 0, player).Item1 == 5 || Connectivity(i, 19, player).Item1 == 5 || Connectivity(19, i, player).Item1 == 5)
+                for (int j = startX; j <= endX; j++)
                 {
-                    return true;
+                    if (Connectivity(j, i, player).Item1 == 5)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
         }
-        
+
         public (int, int) Connectivity(int x, int y, char player)
         {
             int count = 0;
@@ -191,7 +200,7 @@
                     if (IsValidMove(j, i))
                     {
                         MakeMove(j, i, player);
-                        int score = Minimax(depth - 1, player == 'O', int.MinValue, int.MaxValue, prevX, prevY,window);
+                        int score = Minimax(depth - 1, player == 'O', int.MinValue, int.MaxValue, prevX, prevY, 2);
                         DeleteMove(j, i);
 
                         if (player == 'X' && score > bestScore)
@@ -215,7 +224,7 @@
 
         private int Minimax(int depth, bool isMaximizingPlayer, int alpha, int beta, int prevX, int prevY, int window)
         {
-            if (depth == 0 || Is_win('X') || Is_win('O'))
+            if (depth == 0 || Is_win('X', prevX, prevY) || Is_win('O', prevX, prevY))
             {
                 return Evaluate(prevX, prevY);
             }
@@ -235,7 +244,7 @@
                         if (IsValidMove(j, i))
                         {
                             MakeMove(j, i, 'X');
-                            int score = Minimax(depth - 1, false, alpha, beta, prevX, prevY, window);
+                            int score = Minimax(depth - 1, false, alpha, beta, j, i, window);
                             DeleteMove(j, i);
                             bestScore = Math.Max(score, bestScore);
                             alpha = Math.Max(alpha, bestScore);
@@ -258,7 +267,7 @@
                         if (IsValidMove(j, i))
                         {
                             MakeMove(j, i, 'O');
-                            int score = Minimax(depth - 1, true, alpha, beta, prevX, prevY, window);
+                            int score = Minimax(depth - 1, true, alpha, beta, j, i, window);
                             DeleteMove(j, i);
                             bestScore = Math.Min(score, bestScore);
                             beta = Math.Min(beta, bestScore);
@@ -283,11 +292,11 @@
 
             int xScore = 0;
             int oScore = 0;
-            if (Is_win('X'))
+            if (Is_win('X',prevX,prevY,2))
             {
                 return 2000;
             }
-            else if (Is_win('O'))
+            else if (Is_win('O', prevX, prevY, 3))
             {
                 return 0;
             }

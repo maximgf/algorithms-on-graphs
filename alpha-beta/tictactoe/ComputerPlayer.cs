@@ -16,7 +16,7 @@ namespace tictactoe
 
         public (int, int) GetMove(Board board, int prevX, int prevY)
         {
-            return board.Hint(player,4,prevX,prevY);
+            return board.Hint(player,5,prevX,prevY);
             
         }
     }
