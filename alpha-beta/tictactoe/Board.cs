@@ -48,7 +48,7 @@
         {
             for(int i = 0; i < 20;i++)
             {
-                if(Connectivity(0,i,player).Item1 == 5 || Connectivity(i, 0, player).Item1 == 5)
+                if(Connectivity(i, 0, player).Item1 == 5 || Connectivity(i, 19, player).Item1 == 5 || Connectivity(19, i, player).Item1 == 5)
                 {
                     return true;
                 }
@@ -174,14 +174,15 @@
 
         public (int, int) Hint(char player, int depth, int prevX, int prevY)
         {
+            int window = 4;
             int bestScore = player == 'X' ? int.MinValue : int.MaxValue;
             int bestX = -1;
             int bestY = -1;
 
-            int startX = Math.Max(0, prevX - 4);
-            int endX = Math.Min(19, prevX + 4);
-            int startY = Math.Max(0, prevY - 4);
-            int endY = Math.Min(19, prevY + 4);
+            int startX = Math.Max(0, prevX - window);
+            int endX = Math.Min(19, prevX + window);
+            int startY = Math.Max(0, prevY - window);
+            int endY = Math.Min(19, prevY + window);
 
             for (int i = startY; i <= endY; i++)
             {
@@ -190,7 +191,7 @@
                     if (IsValidMove(j, i))
                     {
                         MakeMove(j, i, player);
-                        int score = Minimax(depth - 1, player == 'O', int.MinValue, int.MaxValue, prevX, prevY);
+                        int score = Minimax(depth - 1, player == 'O', int.MinValue, int.MaxValue, prevX, prevY,window);
                         DeleteMove(j, i);
 
                         if (player == 'X' && score > bestScore)
@@ -212,17 +213,17 @@
             return (bestX, bestY);
         }
 
-        private int Minimax(int depth, bool isMaximizingPlayer, int alpha, int beta, int prevX, int prevY)
+        private int Minimax(int depth, bool isMaximizingPlayer, int alpha, int beta, int prevX, int prevY, int window)
         {
             if (depth == 0 || Is_win('X') || Is_win('O'))
             {
-                return Evaluate();
+                return Evaluate(prevX, prevY);
             }
 
-            int startX = Math.Max(0, prevX - 4);
-            int endX = Math.Min(19, prevX + 4);
-            int startY = Math.Max(0, prevY - 4);
-            int endY = Math.Min(19, prevY + 4);
+            int startX = Math.Max(0, prevX - window);
+            int endX = Math.Min(19, prevX + window);
+            int startY = Math.Max(0, prevY - window);
+            int endY = Math.Min(19, prevY + window);
 
             if (isMaximizingPlayer)
             {
@@ -234,7 +235,7 @@
                         if (IsValidMove(j, i))
                         {
                             MakeMove(j, i, 'X');
-                            int score = Minimax(depth - 1, false, alpha, beta, prevX, prevY);
+                            int score = Minimax(depth - 1, false, alpha, beta, prevX, prevY, window);
                             DeleteMove(j, i);
                             bestScore = Math.Max(score, bestScore);
                             alpha = Math.Max(alpha, bestScore);
@@ -257,7 +258,7 @@
                         if (IsValidMove(j, i))
                         {
                             MakeMove(j, i, 'O');
-                            int score = Minimax(depth - 1, true, alpha, beta, prevX, prevY);
+                            int score = Minimax(depth - 1, true, alpha, beta, prevX, prevY, window);
                             DeleteMove(j, i);
                             bestScore = Math.Min(score, bestScore);
                             beta = Math.Min(beta, bestScore);
@@ -272,19 +273,48 @@
             }
         }
 
-        private int Evaluate()
+        private int Evaluate(int prevX, int prevY)
         {
+            int window = 4;
+            int startX = Math.Max(0, prevX - window);
+            int endX = Math.Min(19, prevX + window);
+            int startY = Math.Max(0, prevY - window);
+            int endY = Math.Min(19, prevY + window);
+
+            int xScore = 0;
+            int oScore = 0;
             if (Is_win('X'))
             {
-                return 1;
+                return 2000;
             }
             else if (Is_win('O'))
             {
-                return -1;
+                return 0;
             }
             else
             {
-                return 0;
+                for (int i = startY; i <= endY; i++)
+                {
+                    for (int j = startX; j <= endX; j++)
+                    {
+                        if (cells[i, j].GetValue() != ' ')
+                        {
+                            var connectivity = Connectivity(j, i, cells[i, j].GetValue());
+                            int count = connectivity.Item1;
+
+                            if (cells[i, j].GetValue() == 'X')
+                            {
+                                xScore += (int)Math.Pow(10, count - 1);
+                            }
+                            else
+                            {
+                                oScore += (int)Math.Pow(10, count - 1);
+                            }
+                        }
+                    }
+                }
+
+                return xScore - oScore;
             }
         }
     }
