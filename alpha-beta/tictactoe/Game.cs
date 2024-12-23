@@ -4,12 +4,14 @@ namespace tictactoe
     {
         private Board board = new Board();
         private List<(int, int)> history = new List<(int, int)>();
+        
 
         public void Play()
         {
             char player = 'X';
             ComputerPlayer computer = new ComputerPlayer('O');
-
+            int x = -1;
+            int y = -1;
             while (true)
             {
                 if (board.IsFull())
@@ -20,7 +22,7 @@ namespace tictactoe
                 }
                 if (player == 'X')
                 {
-                    int x, y;
+                    
                     //var hint = board.Hint(player, 3);
                     //Console.WriteLine("Hint* X: " + hint.Item1 + " Y: " + hint.Item2);
                     Console.Write("Enter your move <x y>: ");
@@ -49,7 +51,7 @@ namespace tictactoe
                 {
                     Console.Clear();
                     Console.WriteLine("Computer step:\n");
-                    var move = computer.GetMove(board, history.LastOrDefault().Item1, history.LastOrDefault().Item2);
+                    var move = computer.GetMove(board, x, y);
                     board.MakeMove(move.Item1, move.Item2, player);
                     history.Add(move);
                     board.Display();

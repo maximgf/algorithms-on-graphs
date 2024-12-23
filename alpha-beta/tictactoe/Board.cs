@@ -3,7 +3,6 @@
     public class Board
     {
         private Cell[,] cells = new Cell[20, 20];
- 
 
         public Board()
         {
@@ -36,7 +35,6 @@
         public void MakeMove(int x, int y, char player)
         {
             cells[y, x].SetValue(player);
- 
         }
 
         private void DeleteMove(int x, int y)
@@ -44,25 +42,33 @@
             cells[y, x].SetValue(' ');
         }
 
-        public bool Is_win(char player)
+        public bool Is_win(char player, int lastX = 10, int lastY = 10, int window = 20)
         {
-            for(int i = 0; i < 20;i++)
+            int startX = Math.Max(0, lastX - window);
+            int endX = Math.Min(19, lastX + window);
+            int startY = Math.Max(0, lastY - window);
+            int endY = Math.Min(19, lastY + window);
+
+            for (int i = startY; i <= endY; i++)
             {
-                if(Connectivity(0,i,player).Item1 == 5 || Connectivity(i, 0, player).Item1 == 5)
+                for (int j = startX; j <= endX; j++)
                 {
-                    return true;
+                    if (Connectivity(j, i, player).Item1 == 5)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
         }
-        
+
         public (int, int) Connectivity(int x, int y, char player)
         {
             int count = 0;
             int count_max = 0;
             int direction = 0;
 
-            // Ïðîâåðêà ïî ãîðèçîíòàëè
+            // Проверка по горизонтали
             for (int i = 0; i < 20; ++i)
             {
                 if (cells[y, i].GetValue() == player)
@@ -81,7 +87,7 @@
             }
             count = 0;
 
-            // Ïðîâåðêà ïî âåðòèêàëè
+            // Проверка по вертикали
             for (int i = 0; i < 20; ++i)
             {
                 if (cells[i, x].GetValue() == player)
@@ -100,7 +106,7 @@
             }
             count = 0;
 
-            // Ïðîâåðêà ïî äèàãîíàëè (ñëåâà ñâåðõó íàïðàâî âíèç)
+            // Проверка по диагонали (слева сверху направо вниз)
             int b = -1 * (-1 * y - 1 * x);
             int curr_x = -1;
             int curr_y = b + 1;
@@ -124,7 +130,7 @@
             }
             count = 0;
 
-            // Ïðîâåðêà ïî äèàãîíàëè (ñëåâà ñíèçó íàïðàâî ââåðõ)
+            // Проверка по диагонали (слева снизу направо вверх)
             b = -1 * (-1 * y + 1 * x);
             curr_x = -1;
             curr_y = b - 1;
@@ -155,6 +161,122 @@
             return (count_max, direction);
         }
 
+        private int CheckHorizontal(int x, int y, char player)
+        {
+            int count = 0;
+            int maxCount = 0;
+            for (int i = 0; i < 20; ++i)
+            {
+                if (cells[y, i].GetValue() == player)
+                {
+                    ++count;
+                    if (count > maxCount)
+                    {
+                        maxCount = count;
+                        if ((i + 1 >= 20) || (i - 1 < 0) || (cells[y, i + 1].GetValue() != player && cells[y, i + 1].GetValue() != ' '))
+                        {
+                            maxCount -= 1;
+                        }
+                    }
+                }
+                else
+                {
+                    count = 0;
+                }
+            }
+            return maxCount * maxCount;
+        }
+
+        private int CheckVertical(int x, int y, char player)
+        {
+            int count = 0;
+            int maxCount = 0;
+            for (int i = 0; i < 20; ++i)
+            {
+                if (cells[i, x].GetValue() == player)
+                {
+                    ++count;
+                    if (count > maxCount)
+                    {
+                        maxCount = count;
+                        if ((i + 1 >= 20) || (i - 1 < 0) || (cells[i + 1, x].GetValue() != player && cells[i + 1, x].GetValue() != ' '))
+                        {
+                            maxCount -= 1;
+                        }
+                    }
+                }
+                else
+                {
+                    count = 0;
+                }
+            }
+            return maxCount * maxCount;
+        }
+
+        private int CheckDiagonalLeftToRight(int x, int y, char player)
+        {
+            int count = 0;
+            int maxCount = 0;
+
+            int b = -1 * (-1 * y - 1 * x);
+            int curr_x = -1;
+            int curr_y = b + 1;
+            for (int i = 0; i < 20; i++)
+            {
+                curr_y -= 1;
+                curr_x += 1;
+                if (curr_x < 20 && curr_y < 20 && curr_y >= 0 && cells[curr_y, curr_x].GetValue() == player)
+                {
+                    ++count;
+                    if (count > maxCount)
+                    {
+                        maxCount = count;
+                        if ((curr_y - 1 < 0) || (curr_y + 1 >= 20) || (curr_x + 1 >= 20) || (curr_x - 1 < 0) || (cells[curr_y - 1, curr_x + 1].GetValue() != player && cells[curr_y - 1, curr_x + 1].GetValue() != ' '))
+                        {
+                            maxCount -= 1;
+                        }
+                    }
+                }
+                else
+                {
+                    count = 0;
+                }
+            }
+            return maxCount * maxCount;
+        }
+
+        private int CheckDiagonalRightToLeft(int x, int y, char player)
+        {
+            int count = 0;
+            int maxCount = 0;
+
+            int b = -1 * (-1 * y + 1 * x);
+            int curr_x = -1;
+            int curr_y = b - 1;
+            for (int i = 0; i < 20; i++)
+            {
+                curr_y += 1;
+                curr_x += 1;
+                if (curr_x < 20 && curr_y < 20 && curr_y >= 0 && cells[curr_y, curr_x].GetValue() == player)
+                {
+                    ++count;
+                    if (count > maxCount)
+                    {
+                        maxCount = count;
+                        if ((curr_y + 1 >= 20) || (curr_y - 1 < 0) || (curr_x + 1 >= 20) || (curr_x - 1 < 0) || (cells[curr_y + 1, curr_x + 1].GetValue() != player && cells[curr_y + 1, curr_x + 1].GetValue() != ' '))
+                        {
+                            maxCount -= 1;
+                        }
+                    }
+                }
+                else
+                {
+                    count = 0;
+                }
+            }
+            return maxCount * maxCount;
+        }
+
         public bool IsFull()
         {
             for (int i = 0; i < 20; ++i)
@@ -170,41 +292,27 @@
             return true;
         }
 
-
-
         public (int, int) Hint(char player, int depth, int prevX, int prevY)
         {
-            int bestScore = player == 'X' ? int.MinValue : int.MaxValue;
+            int bestScore = int.MinValue;
             int bestX = -1;
             int bestY = -1;
 
-            int startX = Math.Max(0, prevX - 4);
-            int endX = Math.Min(19, prevX + 4);
-            int startY = Math.Max(0, prevY - 4);
-            int endY = Math.Min(19, prevY + 4);
+            
+            var possibleMoves = GetPossibleMovesInRadius(1);
 
-            for (int i = startY; i <= endY; i++)
+            foreach (var (x, y) in possibleMoves)
             {
-                for (int j = startX; j <= endX; j++)
+                if (IsValidMove(x, y))
                 {
-                    if (IsValidMove(j, i))
+                    MakeMove(x, y, player);
+                    int score = Minimax(depth - 1, false, int.MinValue, int.MaxValue, x, y, 1);
+                    DeleteMove(x, y);
+                    if (score > bestScore)
                     {
-                        MakeMove(j, i, player);
-                        int score = Minimax(depth - 1, player == 'O', int.MinValue, int.MaxValue, prevX, prevY);
-                        DeleteMove(j, i);
-
-                        if (player == 'X' && score > bestScore)
-                        {
-                            bestScore = score;
-                            bestX = j;
-                            bestY = i;
-                        }
-                        else if (player == 'O' && score < bestScore)
-                        {
-                            bestScore = score;
-                            bestX = j;
-                            bestY = i;
-                        }
+                        bestScore = score;
+                        bestX = x;
+                        bestY = y;
                     }
                 }
             }
@@ -212,36 +320,38 @@
             return (bestX, bestY);
         }
 
-        private int Minimax(int depth, bool isMaximizingPlayer, int alpha, int beta, int prevX, int prevY)
+        private int Minimax(int depth, bool isMaximizingPlayer, int alpha, int beta, int prevX, int prevY, int radius)
         {
-            if (depth == 0 || Is_win('X') || Is_win('O'))
+            if (Is_win('X', prevX, prevY, 0))
+            {
+                return -1000000;
+            }
+            if (Is_win('O', prevX, prevY, 0))
+            {
+                return 1000000;
+            }
+            if (depth == 0)
             {
                 return Evaluate();
             }
 
-            int startX = Math.Max(0, prevX - 4);
-            int endX = Math.Min(19, prevX + 4);
-            int startY = Math.Max(0, prevY - 4);
-            int endY = Math.Min(19, prevY + 4);
+            var possibleMoves = GetPossibleMovesInRadius(radius);
 
             if (isMaximizingPlayer)
             {
                 int bestScore = int.MinValue;
-                for (int i = startY; i <= endY; i++)
+                foreach (var (x, y) in possibleMoves)
                 {
-                    for (int j = startX; j <= endX; j++)
+                    if (IsValidMove(x, y))
                     {
-                        if (IsValidMove(j, i))
+                        MakeMove(x, y, 'O');
+                        int score = Minimax(depth - 1, false, alpha, beta, x, y, radius);
+                        DeleteMove(x, y);
+                        bestScore = Math.Max(score, bestScore);
+                        alpha = Math.Max(alpha, bestScore);
+                        if (beta <= alpha)
                         {
-                            MakeMove(j, i, 'X');
-                            int score = Minimax(depth - 1, false, alpha, beta, prevX, prevY);
-                            DeleteMove(j, i);
-                            bestScore = Math.Max(score, bestScore);
-                            alpha = Math.Max(alpha, bestScore);
-                            if (beta <= alpha)
-                            {
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
@@ -250,21 +360,18 @@
             else
             {
                 int bestScore = int.MaxValue;
-                for (int i = startY; i <= endY; i++)
+                foreach (var (x, y) in possibleMoves)
                 {
-                    for (int j = startX; j <= endX; j++)
+                    if (IsValidMove(x, y))
                     {
-                        if (IsValidMove(j, i))
+                        MakeMove(x, y, 'X');
+                        int score = Minimax(depth - 1, true, alpha, beta, x, y, radius);
+                        DeleteMove(x, y);
+                        bestScore = Math.Min(score, bestScore);
+                        beta = Math.Min(beta, bestScore);
+                        if (beta <= alpha)
                         {
-                            MakeMove(j, i, 'O');
-                            int score = Minimax(depth - 1, true, alpha, beta, prevX, prevY);
-                            DeleteMove(j, i);
-                            bestScore = Math.Min(score, bestScore);
-                            beta = Math.Min(beta, bestScore);
-                            if (beta <= alpha)
-                            {
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
@@ -274,18 +381,74 @@
 
         private int Evaluate()
         {
-            if (Is_win('X'))
+            int xScore = 0;
+            int oScore = 0;
+            int horizontal = 0;
+            int vertical = 0;
+            int diagonalLeftToRight = 0;
+            int diagonalRightToLeft = 0;
+
+            // Оценка для игрока 'X'
+            for (int i = 0; i < 20; i++)
             {
-                return 1;
+                horizontal += CheckHorizontal(0, i, 'X');
+                vertical += CheckVertical(i, 0, 'X');
+                diagonalLeftToRight += CheckDiagonalLeftToRight(i, 19, 'X');
+                diagonalRightToLeft += CheckDiagonalRightToLeft(0, i, 'X');
             }
-            else if (Is_win('O'))
+            for (int i = 0; i < 19; i++)
             {
-                return -1;
+                diagonalLeftToRight += CheckDiagonalLeftToRight(0, i, 'X');
+                diagonalRightToLeft += CheckDiagonalRightToLeft(i + 1, 0, 'X');
             }
-            else
+            xScore = (int)(1.1 * ((double)(horizontal + vertical + diagonalRightToLeft + diagonalLeftToRight)));
+
+            // Оценка для игрока 'O'
+            horizontal = 0;
+            vertical = 0;
+            diagonalLeftToRight = 0;
+            diagonalRightToLeft = 0;
+            for (int i = 0; i < 20; i++)
             {
-                return 0;
+                horizontal += CheckHorizontal(0, i, 'O');
+                vertical += CheckVertical(i, 0, 'O');
+                diagonalLeftToRight += CheckDiagonalLeftToRight(i, 19, 'O');
+                diagonalRightToLeft += CheckDiagonalRightToLeft(0, i, 'O');
             }
+            for (int i = 0; i < 19; i++)
+            {
+                diagonalLeftToRight += CheckDiagonalLeftToRight(0, i, 'O');
+                diagonalRightToLeft += CheckDiagonalRightToLeft(i + 1, 0, 'O');
+            }
+            oScore = (horizontal + vertical + diagonalRightToLeft + diagonalLeftToRight);
+            return oScore - xScore;
+        }
+
+        private List<(int, int)> GetPossibleMovesInRadius(int radius)
+        {
+            var possibleMoves = new List<(int, int)>();
+
+            for (int i = 0; i < 20; i++)
+            {
+                for (int j = 0; j < 20; j++)
+                {
+                    if (cells[i, j].GetValue() != ' ')
+                    {
+                        for (int y = Math.Max(0, i - radius); y <= Math.Min(19, i + radius); y++)
+                        {
+                            for (int x = Math.Max(0, j - radius); x <= Math.Min(19, j + radius); x++)
+                            {
+                                if (cells[y, x].GetValue() == ' ' && !possibleMoves.Contains((x, y)))
+                                {
+                                    possibleMoves.Add((x, y));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return possibleMoves;
         }
     }
 }
