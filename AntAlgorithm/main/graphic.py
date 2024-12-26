@@ -26,7 +26,7 @@ def read_data(file_path, step=1000):
 def plot_paths(iterations, current_paths, best_paths, best_path_probabilities):
     plt.figure(figsize=(10, 6))
     plt.plot(iterations, current_paths, label='Лучший путь', marker='o', linestyle='None')
-    plt.plot(iterations, best_paths, label='Текущий пут', marker='x', linestyle='None')
+    plt.plot(iterations, best_paths, label='Текущий путь', marker='x', linestyle='None')
     plt.xlabel('Итерация')
     plt.ylabel('Длина пути')
     plt.title('Зависимость длины текущего и лучшего пути от итерации')

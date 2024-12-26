@@ -17,13 +17,31 @@
 
         public void Display()
         {
+            string count = new string('-', 43);
+            Console.Write("  ");
+            for(int k = 0; k < 20;k++)
+            {
+                Console.Write($"|{k%10}");
+            }
+            Console.WriteLine("|");
+
             for (int i = 0; i < 20; ++i)
             {
+                if(i < 10)
+                {
+                    Console.Write($"{i} ");
+                }
+                else 
+                {
+                    Console.Write(i);
+                }
+                
                 for (int j = 0; j < 20; ++j)
                 {
-                    Console.Write(cells[i, j].GetValue());
+                    Console.Write($"|{cells[i, j].GetValue()}");
                 }
-                Console.WriteLine();
+                Console.WriteLine("|");
+                //Console.WriteLine(count);
             }
         }
 
@@ -44,14 +62,9 @@
 
         public bool Is_win(char player, int lastX = 10, int lastY = 10, int window = 20)
         {
-            int startX = Math.Max(0, lastX - window);
-            int endX = Math.Min(19, lastX + window);
-            int startY = Math.Max(0, lastY - window);
-            int endY = Math.Min(19, lastY + window);
-
-            for (int i = startY; i <= endY; i++)
+            for (int i = 0; i <= 19; i++)
             {
-                for (int j = startX; j <= endX; j++)
+                for (int j = 0; j <= 19; j++)
                 {
                     if (Connectivity(j, i, player).Item1 == 5)
                     {
@@ -61,6 +74,14 @@
             }
             return false;
         }
+
+        public bool Is_winm(char player,int x,int y)
+        {
+            return (Connectivity(x, y, player).Item1 == 5);
+        }
+
+
+
 
         public (int, int) Connectivity(int x, int y, char player)
         {
@@ -322,11 +343,11 @@
 
         private int Minimax(int depth, bool isMaximizingPlayer, int alpha, int beta, int prevX, int prevY, int radius)
         {
-            if (Is_win('X', prevX, prevY, 0))
+            if (Is_winm('X', prevX, prevY))
             {
                 return -1000000;
             }
-            if (Is_win('O', prevX, prevY, 0))
+            if (Is_winm('O', prevX, prevY))
             {
                 return 1000000;
             }
@@ -342,7 +363,7 @@
                 int bestScore = int.MinValue;
                 foreach (var (x, y) in possibleMoves)
                 {
-                    if (IsValidMove(x, y))
+                    //if (IsValidMove(x, y))
                     {
                         MakeMove(x, y, 'O');
                         int score = Minimax(depth - 1, false, alpha, beta, x, y, radius);
@@ -362,7 +383,7 @@
                 int bestScore = int.MaxValue;
                 foreach (var (x, y) in possibleMoves)
                 {
-                    if (IsValidMove(x, y))
+                    //if (IsValidMove(x, y))
                     {
                         MakeMove(x, y, 'X');
                         int score = Minimax(depth - 1, true, alpha, beta, x, y, radius);
@@ -401,7 +422,7 @@
                 diagonalLeftToRight += CheckDiagonalLeftToRight(0, i, 'X');
                 diagonalRightToLeft += CheckDiagonalRightToLeft(i + 1, 0, 'X');
             }
-            xScore = (int)(1.1 * ((double)(horizontal + vertical + diagonalRightToLeft + diagonalLeftToRight)));
+            xScore = /*(int)(1.1 * ((double)*/(horizontal + vertical + diagonalRightToLeft + diagonalLeftToRight);
 
             // Оценка для игрока 'O'
             horizontal = 0;

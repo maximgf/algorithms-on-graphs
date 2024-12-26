@@ -96,10 +96,12 @@ namespace AntColony
 
                 BesthPathVector[ant] = bestPathLength;
                 CurrentPathVector[ant] = pathLength;
-               
+
+
+                BesthPathProbalityVector[ant] = CalculatePathProbability(bestPath);
                 AddPheromons(path, pathLength);
                 PheromonsEvaporation();
-                BesthPathProbalityVector[ant] = CalculatePathProbability(bestPath);
+                
             }
 
 
