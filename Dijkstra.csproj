@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Graf\Graf.csproj" />
   </ItemGroup>
 
 </Project>
