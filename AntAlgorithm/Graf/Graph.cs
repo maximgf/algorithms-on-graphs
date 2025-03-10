@@ -2,151 +2,151 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Path = System.IO.Path;
 
 namespace Graph
 {
-    static public class Graph
+    public static class Graph
     {
-        public static double[,] Copy(double[,] graf)
+        public static double[,] Copy(double[,] graph)
         {
-            int rows = graf.GetUpperBound(0) + 1;
-            int colomns = graf.GetUpperBound(1) + 1;
-            double[,] grafCopy = new double[rows, colomns];
+            int rows = graph.GetUpperBound(0) + 1;
+            int columns = graph.GetUpperBound(1) + 1;
+            double[,] graphCopy = new double[rows, columns];
             for (int i = 0; i < rows; i++)
             {
-                for (int j = 0; j < colomns; j++)
+                for (int j = 0; j < columns; j++)
                 {
-                    grafCopy[i, j] = graf[i, j];
+                    graphCopy[i, j] = graph[i, j];
                 }
             }
-            return grafCopy;
+            return graphCopy;
         }
 
-        public static void Print(double[,] graf)
+        public static void Print(double[,] graph)
         {
-            int rows = graf.GetUpperBound(0) + 1;
-            int colomns = graf.GetUpperBound(1) + 1;
+            int rows = graph.GetUpperBound(0) + 1;
+            int columns = graph.GetUpperBound(1) + 1;
             for (int i = 0; i < rows; i++)
             {
-                for (int j = 0; j < colomns; j++)
+                for (int j = 0; j < columns; j++)
                 {
-                    Console.Write($"{graf[i, j]} ");
+                    Console.Write($"{graph[i, j]} ");
                 }
                 Console.WriteLine();
             }
         }
 
-        public static double[,] DeleteColomn(double[,] graf, int index)
+        public static double[,] DeleteColumn(double[,] graph, int index)
         {
-            int rows = graf.GetUpperBound(0) + 1;
-            int colomns = graf.GetUpperBound(1) + 1;
+            int rows = graph.GetUpperBound(0) + 1;
+            int columns = graph.GetUpperBound(1) + 1;
 
-            double[,] newgraf = new double[rows, colomns - 1];
+            double[,] newGraph = new double[rows, columns - 1];
             for (int i = 0; i < rows; i++)
             {
                 int jO = 0;
-                for (int j = 0; j < colomns; j++)
+                for (int j = 0; j < columns; j++)
                 {
                     if (j != index)
                     {
-                        newgraf[i, jO] = graf[i, j];
+                        newGraph[i, jO] = graph[i, j];
                         jO++;
                     }
                 }
             }
-            return newgraf;
+            return newGraph;
         }
 
-        public static double[,] DeleteRow(double[,] graf, int index)
+        public static double[,] DeleteRow(double[,] graph, int index)
         {
-            int rows = graf.GetUpperBound(0) + 1;
-            int colomns = graf.GetUpperBound(1) + 1;
-            double[,] newgraf = new double[rows - 1, colomns];
+            int rows = graph.GetUpperBound(0) + 1;
+            int columns = graph.GetUpperBound(1) + 1;
+            double[,] newGraph = new double[rows - 1, columns];
             int iO = 0;
             for (int i = 0; i < rows; i++)
             {
                 if (i != index)
                 {
-                    for (int j = 0; j < colomns; j++)
+                    for (int j = 0; j < columns; j++)
                     {
-                        newgraf[iO, j] = graf[i, j];
+                        newGraph[iO, j] = graph[i, j];
                     }
                     iO++;
                 }
             }
-            return newgraf;
+            return newGraph;
         }
 
- 
-            public static double[,] ReadGraph(string pathFile)
+        public static double[,] ReadGraph(string pathFile)
+        {
+            if (!File.Exists(pathFile))
             {
-                string[] lines = File.ReadAllLines(pathFile);
-
-                Dictionary<int, int> maxIndices = new Dictionary<int, int>();
-
-                foreach (var line in lines)
-                {
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        continue; // Skip empty lines
-                    }
-
-                    string[] parts = line.Split(' ');
-
-                    if (parts.Length != 3)
-                    {
-                        throw new FormatException($"Invalid input format in line: '{line}'. Expected format: 'from to weight'.");
-                    }
-
-                    int from = int.Parse(parts[0]);
-                    int to = int.Parse(parts[1]);
-
-                    if (!maxIndices.ContainsKey(from) || maxIndices[from] < to)
-                    {
-                        maxIndices[from] = to;
-                    }
-
-                    if (!maxIndices.ContainsKey(to) || maxIndices[to] < from)
-                    {
-                        maxIndices[to] = from;
-                    }
-                }
-
-                int maxIndex = maxIndices.Keys.Max() + 1;
-                double[,] adjacencyMatrix = new double[maxIndex, maxIndex];
-
-                // Initialize the matrix with double.PositiveInfinity to indicate no path
-                for (int i = 0; i < maxIndex; i++)
-                {
-                    for (int j = 0; j < maxIndex; j++)
-                    {
-                        adjacencyMatrix[i, j] = double.PositiveInfinity;
-                    }
-                }
-
-                foreach (var line in lines)
-                {
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        continue; // Skip empty lines
-                    }
-
-                    string[] parts = line.Split(' ');
-
-                    if (parts.Length != 3)
-                    {
-                        throw new FormatException($"Invalid input format in line: '{line}'. Expected format: 'from to weight'.");
-                    }
-
-                    int from = int.Parse(parts[0]);
-                    int to = int.Parse(parts[1]);
-                    double weight = double.Parse(parts[2]);
-
-                    adjacencyMatrix[from, to] = weight;
-                }
-
-                return adjacencyMatrix;
+                throw new FileNotFoundException("The specified file does not exist.");
             }
-        
+
+            string[] lines = File.ReadAllLines(pathFile);
+            Dictionary<int, int> maxIndices = new Dictionary<int, int>();
+
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                string[] parts = line.Split(' ');
+                if (parts.Length != 3)
+                {
+                    throw new FormatException($"Invalid input format in line: '{line}'. Expected format: 'from to weight'.");
+                }
+
+                int from = int.Parse(parts[0]);
+                int to = int.Parse(parts[1]);
+
+                if (!maxIndices.ContainsKey(from) || maxIndices[from] < to)
+                {
+                    maxIndices[from] = to;
+                }
+
+                if (!maxIndices.ContainsKey(to) || maxIndices[to] < from)
+                {
+                    maxIndices[to] = from;
+                }
+            }
+
+            int maxIndex = maxIndices.Keys.Max() + 1;
+            double[,] adjacencyMatrix = new double[maxIndex, maxIndex];
+
+            for (int i = 0; i < maxIndex; i++)
+            {
+                for (int j = 0; j < maxIndex; j++)
+                {
+                    adjacencyMatrix[i, j] = double.PositiveInfinity;
+                }
+            }
+
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                string[] parts = line.Split(' ');
+                if (parts.Length != 3)
+                {
+                    throw new FormatException($"Invalid input format in line: '{line}'. Expected format: 'from to weight'.");
+                }
+
+                int from = int.Parse(parts[0]);
+                int to = int.Parse(parts[1]);
+                double weight = double.Parse(parts[2]);
+
+                adjacencyMatrix[from, to] = weight;
+            }
+
+            return adjacencyMatrix;
+        }
     }
 }
