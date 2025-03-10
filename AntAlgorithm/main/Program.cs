@@ -29,7 +29,7 @@ class Program
         int[] bestPath = antAlgorithm.Run();
         antAlgorithm.SavePathsToFile("path.txt");
         
-        Console.WriteLine("Final Best Path: " + string.Join(" -> ", bestPath) + $" Length: {antAlgorithm.PathLenght(bestPath)}");
+        Console.WriteLine("Final Best Path: " + string.Join(" -> ", bestPath) + $" Length: {antAlgorithm.CalculatePathLength(bestPath)}");
           
     }
 }

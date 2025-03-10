@@ -5,210 +5,223 @@ namespace AntColony
 {
     public class AntAlgorithm
     {
+        // Константы для формул 
         private double alpha;
         private double beta;
-        private double Q;
-        private double Kevaporation;
-        private double[,] graf;
-        private int nodeCounts;
-        private double[,] Pheromones;
+        private double q;
+        private double evaporationRate;
+        
+        // Инструменты для работы алгоритма
+        private double[,] graph;
+        private int nodeCount;
+        private double[,] pheromones;
         private Random random;
-        private double[] BesthPathVector;
-        private double[] CurrentPathVector;
-        private double[] BesthPathProbalityVector;
+        
+        // Для логгирования
+        private double[] bestPathLengths;
+        private double[] currentPathLengths;
+        private double[] bestPathProbabilities;
 
-        public AntAlgorithm(double[,] graf, double alpha = 1, double beta = 1, double Q = 5, double Kevaporation = 0.2)
+        public AntAlgorithm(double[,] graph, double alpha = 1, double beta = 1, double q = 5, double evaporationRate = 0.2)
         {
-            this.graf = graf;
+            this.graph = graph;
             this.alpha = alpha;
             this.beta = beta;
-            this.Q = Q;
-            this.Kevaporation = Kevaporation;
-            nodeCounts = graf.GetLength(0);
-            Pheromones = new double[nodeCounts, nodeCounts];
+            this.q = q;
+            this.evaporationRate = evaporationRate;
+            nodeCount = graph.GetLength(0);
+            pheromones = new double[nodeCount, nodeCount];
             random = new Random();
-
-            for (int row = 0; row < nodeCounts; row++)
-            {
-                for (int col = 0; col < nodeCounts; col++)
-                {
-                    Pheromones[row, col] = 0.1;
-                }
-            }
-
-
+    
+            InitializePheromones();
         }
 
-        public int[] Run(int countIterations = 10000)
+        //Для корректной работы формулы инициализруется небольшое значения для каждого пути в графе
+        private void InitializePheromones()
         {
-            int[] bestPath = new int[nodeCounts];
-            double bestPathLength = double.MaxValue;
-            BesthPathVector = new double[countIterations];
-            CurrentPathVector = new double[countIterations];
-            BesthPathProbalityVector = new double[countIterations];
-
-
-            for (int ant = 0; ant < countIterations; ant++)
+            for (int row = 0; row < nodeCount; row++)
             {
-                int[] path = new int[nodeCounts];
-                bool[] visited = new bool[nodeCounts];
-                int startedNode = random.Next(nodeCounts);
-                int currentNode = startedNode;
-                for (int i = 0; i < nodeCounts; i++)
+                for (int col = 0; col < nodeCount; col++)
                 {
-                    visited[i] = false;
+                    pheromones[row, col] = 0.1;
                 }
- 
-                for (int node = 0; node < nodeCounts; node++)
-                {
-                    
-                    path[node] = currentNode;
-              
-                    currentNode = Variable(currentNode, visited,startedNode);
- 
-                    visited[currentNode] = true;
-                    if (currentNode == path[node])
-                    {
-                        break;
-                    }
-
-                }
-                /*Console.Write($"{ant}: ");
-                for (int node = 0;node < nodeCounts; node++)
-                {
-                    Console.Write($"{path[node]} ");
-                }
-                */
-                double pathLength = PathLenght(path);
-                //Console.WriteLine(pathLength);
-                if (pathLength == double.PositiveInfinity)
-                {
-
-                    BesthPathVector[ant] = bestPathLength;
-                    CurrentPathVector[ant] = 0;
-                    continue;
-                }
-                if (pathLength < bestPathLength)
-                {
-                    bestPath = path;
-                    bestPathLength = pathLength;
-                }
-
-                BesthPathVector[ant] = bestPathLength;
-                CurrentPathVector[ant] = pathLength;
-
-
-                BesthPathProbalityVector[ant] = CalculatePathProbability(bestPath);
-                AddPheromons(path, pathLength);
-                PheromonsEvaporation();
-                
             }
+        }
 
+        // iterations - количество муравьев, которых поочередно запускают
+        public int[] Run(int iterations = 10000)
+        {
+            int[] bestPath = new int[nodeCount];
+            double bestPathLength = double.MaxValue;
+            bestPathLengths = new double[iterations];
+            currentPathLengths = new double[iterations];
+            bestPathProbabilities = new double[iterations];
 
+            for (int iteration = 0; iteration < iterations; iteration++)
+            {
+                int[] path = GeneratePath();
+                double pathLength = CalculatePathLength(path);
+
+                UpdateBestPath(path, pathLength, ref bestPath, ref bestPathLength);
+
+                bestPathLengths[iteration] = bestPathLength;
+                currentPathLengths[iteration] = pathLength;
+                bestPathProbabilities[iteration] = CalculatePathProbability(bestPath);
+
+                UpdatePheromones(path, pathLength);
+                EvaporatePheromones();
+            }
 
             return bestPath;
         }
 
-        private void AddPheromons(int[] path, double pathLength)
+        // Иммитация прохода муравья
+        private int[] GeneratePath()
         {
-            for (int node = 0; node < nodeCounts - 1; node++)
+            int[] path = new int[nodeCount];
+            bool[] visited = new bool[nodeCount];
+            int startNode = random.Next(nodeCount);
+            int currentNode = startNode;
+
+            for (int node = 0; node < nodeCount; node++)
             {
-                Pheromones[path[node], path[node + 1]] += Q / pathLength;
+                path[node] = currentNode;
+                currentNode = ChooseNextNode(currentNode, visited, startNode);
+                visited[currentNode] = true;
             }
-            Pheromones[path[nodeCounts - 1], path[0]] += Q / pathLength;
+
+            return path;
         }
 
-        public double PathLenght(int[] path)
+        // На вероятностной основе выбирается следующий узел
+        private int ChooseNextNode(int currentNode, bool[] visited, int startNode)
         {
-            double sum = 0;
-            for (int node = 0; node < nodeCounts - 1; node++)
-            {
-                sum += graf[path[node], path[node + 1]];
-            }
-            sum += graf[path[nodeCounts - 1], path[0]];
-            return sum;
+            double[] probabilities = CalculateProbabilities(currentNode, visited, startNode);
+            return SelectNextNode(probabilities);
         }
 
-        private void PheromonsEvaporation()
+        //
+        private double[] CalculateProbabilities(int currentNode, bool[] visited, int startNode)
         {
-            for (int row = 0; row < nodeCounts; row++)
+            double[] probabilities = new double[nodeCount];
+            double normalizer = 0.0;
+
+            for (int nextNode = 0; nextNode < nodeCount; nextNode++)
             {
-                for (int col = 0; col < nodeCounts; col++)
+                if (visited[nextNode] || graph[currentNode, nextNode] == double.PositiveInfinity || nextNode == startNode)
                 {
-                    Pheromones[row, col] *= (1 - Kevaporation);
-                }
-            }
-        }
-
-        private int Variable(int currentNode, bool[] visited, int startedNode)
-        {
-
-            double[] probabilities = new double[nodeCounts];
-            double normal = 0;
-
-            for (int into = 0; into < nodeCounts; into++)
-            {
-                if (visited[into] || graf[currentNode,into] == double.PositiveInfinity || (into == startedNode))
-                {
-                    probabilities[into] = 0.0;
- 
+                    probabilities[nextNode] = 0.0;
                     continue;
                 }
-                probabilities[into] = Math.Pow(Pheromones[currentNode, into], alpha) * Math.Pow(1 / graf[currentNode, into], beta);
- 
-                normal += probabilities[into];
-            }
- 
-            if(normal == 0)
-            {
-                return currentNode;
-            }
-            for (int i = 0; i < nodeCounts; i++)
-            {
-                probabilities[i] /= normal;
+                // Формула коэффициента выбора узла
+                probabilities[nextNode] = Math.Pow(pheromones[currentNode, nextNode], alpha) * Math.Pow(1 / graph[currentNode, nextNode], beta);
+                // Сумма всех коэффициентов
+                normalizer += probabilities[nextNode];
             }
 
+            // Сценарий тупика
+            if (normalizer == 0)
+            {
+                return probabilities;
+            }
+
+            // Расчет вероятности для каждого узла
+            for (int i = 0; i < nodeCount; i++)
+            {
+                probabilities[i] /= normalizer;
+            }
+
+            return probabilities;
+        }
+        
+        // Генерируем рандомное число, суммируем все вероятности узлов, пока не станем больше rand
+        private int SelectNextNode(double[] probabilities)
+        {
             double rand = random.NextDouble();
             double cumulativeProbability = 0.0;
-            for (int nextNode = 0; nextNode < nodeCounts; nextNode++)
+
+            for (int nextNode = 0; nextNode < nodeCount; nextNode++)
             {
                 cumulativeProbability += probabilities[nextNode];
- 
                 if (rand < cumulativeProbability)
                 {
- 
                     return nextNode;
                 }
             }
-           
-            return currentNode;
+
+            return 0;
         }
 
-        public void SavePathsToFile(string filePath)
+        private void UpdateBestPath(int[] path, double pathLength, ref int[] bestPath, ref double bestPathLength)
         {
-            using (StreamWriter writer = new StreamWriter(filePath))
+            if (pathLength < bestPathLength)
             {
-                writer.WriteLine("Iteration\tBest Path Length\tCurrent Path Length\tProbability");
-                for (int i = 0; i < 10000; i++)
+                Array.Copy(path, bestPath, nodeCount);
+                bestPathLength = pathLength;
+            }
+        }
+
+        public double CalculatePathLength(int[] path)
+        {
+            double sum = 0;
+            for (int node = 0; node < nodeCount - 1; node++)
+            {
+                sum += graph[path[node], path[node + 1]];
+            }
+            sum += graph[path[nodeCount - 1], path[0]];
+            return sum;
+        }
+
+        private void UpdatePheromones(int[] path, double pathLength)
+        {
+            for (int node = 0; node < nodeCount - 1; node++)
+            {
+                // Формула вичисления значения феромона
+                pheromones[path[node], path[node + 1]] += q / pathLength;
+            }
+            // Возвращение в начало
+            pheromones[path[nodeCount - 1], path[0]] += q / pathLength;
+        }
+
+        private void EvaporatePheromones()
+        {
+            for (int row = 0; row < nodeCount; row++)
+            {
+                for (int col = 0; col < nodeCount; col++)
                 {
-                    writer.WriteLine($"{i}\t{BesthPathVector[i]}\t{CurrentPathVector[i]}\t{BesthPathProbalityVector[i]}");
+                    // Учет испарения феромонов
+                    pheromones[row, col] *= (1 - evaporationRate);
                 }
             }
         }
 
+
+        // Для логгирования
         private double CalculatePathProbability(int[] path)
         {
             double probability = 1.0;
-            for (int node = 0; node < nodeCounts - 1; node++)
+            for (int node = 0; node < nodeCount - 1; node++)
             {
                 int from = path[node];
                 int to = path[node + 1];
-                double pheromone = Pheromones[from, to];
-                double distance = graf[from, to];
+                double pheromone = pheromones[from, to];
+                double distance = graph[from, to];
                 probability *= Math.Pow(pheromone, alpha) * Math.Pow(1 / distance, beta);
             }
             return probability;
         }
 
+        // Для логгирования
+        public void SavePathsToFile(string filePath)
+        {
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                writer.WriteLine("Iteration\tBest Path Length\tCurrent Path Length\tProbability");
+                for (int i = 0; i < bestPathLengths.Length; i++)
+                {
+                    writer.WriteLine($"{i}\t{bestPathLengths[i]}\t{currentPathLengths[i]}\t{bestPathProbabilities[i]}");
+                }
+            }
+        }
     }
 }
